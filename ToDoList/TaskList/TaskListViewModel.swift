@@ -45,6 +45,7 @@ final class TaskListViewModel {
             apiTasks.forEach {
                 let task = TaskItem(title: $0.todo)
                 task.isCompleted = $0.completed
+                task.details = "Подробная информация отсутствует. Загружено из сети."
                 modelContext.insert(task)
             }
             

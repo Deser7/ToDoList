@@ -29,9 +29,9 @@ struct TaskDetailView: View {
             
                     Spacer()
                 }
-                .navigationTitle(title)
-                .navigationBarTitleDisplayMode(.large)
             }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 }

@@ -14,7 +14,8 @@ struct TaskListView: View {
     
     @State private var viewModel = TaskListViewModel()
     @State private var showingAddTask = false
-
+    @State private var selectedTask: TaskItem? = nil
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -32,18 +33,15 @@ struct TaskListView: View {
                 } else {
                     List {
                         ForEach(viewModel.filteredTasks(tasks)) { task in
-                            NavigationLink(destination: TaskDetailView(
+                            TaskCellView(
                                 title: task.title,
-                                date: task.timestamp.dateStringWithSeparator,
-                                details: task.details
-                            )) {
-                                TaskCellView(
-                                    title: task.title,
-                                    details: task.details,
-                                    timestamp: task.timestamp,
-                                    isCompleted: task.isCompleted,
-                                    onToggle: { toggleTask(task) }
-                                )
+                                details: task.details,
+                                timestamp: task.timestamp,
+                                isCompleted: task.isCompleted,
+                                onToggle: { toggleTask(task) }
+                            )
+                            .onTapGesture {
+                                selectedTask = task
                             }
                         }
                         .onDelete(perform: deleteTasks)
@@ -56,15 +54,22 @@ struct TaskListView: View {
             .task {
                 await viewModel.loadInitialTasksIfNeeded(modelContext)
             }
+            .navigationDestination(item: $selectedTask) { task in
+                TaskDetailView(
+                    title: task.title,
+                    date: task.timestamp.dateStringWithSeparator,
+                    details: task.details
+                )
+            }
         }
     }
     
     private func toggleTask(_ task: TaskItem) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                task.isCompleted.toggle()
-            }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            task.isCompleted.toggle()
         }
-
+    }
+    
     private func addItem() {
         withAnimation {
             let newItem = TaskItem(title: String())
@@ -77,7 +82,7 @@ struct TaskListView: View {
             modelContext.delete(task)
         }
     }
-
+    
     private func deleteTasks(offsets: IndexSet) {
         withAnimation {
             for index in offsets {

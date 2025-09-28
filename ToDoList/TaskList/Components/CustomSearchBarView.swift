@@ -17,13 +17,12 @@ struct CustomSearchBarView: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.white)
-                .opacity(0.5)
+                .foregroundStyle(.secondary)
                 .padding(.leading, 8)
             
             TextField("Search", text: $text)
                 .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .padding(.top, 8)
@@ -38,26 +37,24 @@ struct CustomSearchBarView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 17, weight: .regular))
-                        .foregroundStyle(.white)
-                        .opacity(0.5)
+                        .foregroundStyle(.secondary)
                 }
             }
             
             Button(action: onVoiceSearch) {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 17, weight: .regular))
-                    .foregroundStyle(.white)
-                    .opacity(0.5)
+                    .foregroundStyle(.gray)
             }
             .padding(.trailing, 8)
         }
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.textField)
+                .fill(Color(.systemGray6))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isEditing ? Color.stroke : Color.clear)
+                .stroke(isEditing ? Color.accentColor : Color.clear)
         )
         .animation(.easeInOut(duration: 0.2), value: isEditing)
     }

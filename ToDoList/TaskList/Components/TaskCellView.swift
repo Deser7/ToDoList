@@ -15,7 +15,7 @@ struct TaskCellView: View {
     let onToggle: () -> Void
     
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .top) {
             Button(action: onToggle) {
                 Image(systemName: isCompleted ? "checkmark.circle" : "circle")
                     .font(.system(size: 24))
