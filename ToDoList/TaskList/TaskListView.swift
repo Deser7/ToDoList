@@ -25,14 +25,33 @@ struct TaskListView: View {
                 
                 List {
                     ForEach(viewModel.filteredTasks(tasks)) { task in
-//                        NavigationLink(destination: TaskDetailView, label: <#T##() -> Label#>)
+                        NavigationLink(destination: TaskDetailView(
+                            title: task.title,
+                            date: task.timestamp.dateStringWithSeparator,
+                            details: task.details
+                        )) {
+                            TaskCellView(
+                                title: task.title,
+                                details: task.details,
+                                timestamp: task.timestamp,
+                                isCompleted: task.isCompleted,
+                                onToggle: { toggleTask(task) }
+                            )
+                        }
                     }
+                    .onDelete(perform: deleteTasks)
                 }
             }
             .navigationTitle("Задачи")
             .navigationBarTitleDisplayMode(.large)
         }
     }
+    
+    private func toggleTask(_ task: TaskItem) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                task.isCompleted.toggle()
+            }
+        }
 
     private func addItem() {
         withAnimation {
@@ -40,8 +59,14 @@ struct TaskListView: View {
             modelContext.insert(newItem)
         }
     }
+    
+    private func deleteTask(_ task: TaskItem) {
+        withAnimation {
+            modelContext.delete(task)
+        }
+    }
 
-    private func deleteItems(offsets: IndexSet) {
+    private func deleteTasks(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
                 modelContext.delete(tasks[index])
