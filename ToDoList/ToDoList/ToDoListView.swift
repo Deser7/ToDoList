@@ -10,12 +10,15 @@ import SwiftData
 
 struct ToDoListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [TaskItem]
+    @Query private var tasks: [TaskItem]
+    
+    @State private var viewModel = ToDoListViewModel()
+    @State private var showingAddTask = false
 
     var body: some View {
         NavigationSplitView {
             List {
-                ForEach(items) { item in
+                ForEach(tasks) { item in
                     NavigationLink {
                         Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
                     } label: {
@@ -49,7 +52,7 @@ struct ToDoListView: View {
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(tasks[index])
             }
         }
     }
