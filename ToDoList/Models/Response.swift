@@ -14,9 +14,8 @@ struct Response: Codable {
     let limit: Int
     
     struct ToDo: Codable {
-        let id: Int
         let todo: String
-        let complete: Bool
-        let userId: Int
+        let completed: Bool
+
     }
 }

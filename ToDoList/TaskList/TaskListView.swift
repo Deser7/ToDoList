@@ -23,27 +23,39 @@ struct TaskListView: View {
                     onVoiceSearch: { print("Голосовой поиск нажат") }
                 )
                 
-                List {
-                    ForEach(viewModel.filteredTasks(tasks)) { task in
-                        NavigationLink(destination: TaskDetailView(
-                            title: task.title,
-                            date: task.timestamp.dateStringWithSeparator,
-                            details: task.details
-                        )) {
-                            TaskCellView(
-                                title: task.title,
-                                details: task.details,
-                                timestamp: task.timestamp,
-                                isCompleted: task.isCompleted,
-                                onToggle: { toggleTask(task) }
-                            )
-                        }
+                if viewModel.isLoading {
+                    VStack {
+                        ProgressView("Загрузка задач...")
+                            .progressViewStyle(CircularProgressViewStyle())
                     }
-                    .onDelete(perform: deleteTasks)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(viewModel.filteredTasks(tasks)) { task in
+                            NavigationLink(destination: TaskDetailView(
+                                title: task.title,
+                                date: task.timestamp.dateStringWithSeparator,
+                                details: task.details
+                            )) {
+                                TaskCellView(
+                                    title: task.title,
+                                    details: task.details,
+                                    timestamp: task.timestamp,
+                                    isCompleted: task.isCompleted,
+                                    onToggle: { toggleTask(task) }
+                                )
+                            }
+                        }
+                        .onDelete(perform: deleteTasks)
+                    }
+                    .listStyle(.plain)
                 }
             }
             .navigationTitle("Задачи")
             .navigationBarTitleDisplayMode(.large)
+            .task {
+                await viewModel.loadInitialTasksIfNeeded(modelContext)
+            }
         }
     }
     

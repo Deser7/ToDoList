@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 final class TaskItem {
-    var id = UUID()
+    @Attribute(.unique) var id = UUID()
     var title: String
     var details = ""
     var timestamp = Date()

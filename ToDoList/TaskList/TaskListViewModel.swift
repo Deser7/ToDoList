@@ -7,10 +7,13 @@
 
 import Foundation
 import Observation
+import SwiftData
 
 @Observable
 final class TaskListViewModel {
     var searchText = ""
+    var isLoading = false
+    var hasLoadedInitialData = false
     
     func filteredTasks(_ tasks: [TaskItem]) -> [TaskItem] {
         guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -28,5 +31,30 @@ final class TaskListViewModel {
         let completed = tasks.filter { $0.isCompleted }.count
         let pending = total - completed
         return (total, completed, pending)
+    }
+    
+    func loadInitialTasksIfNeeded(_ modelContext: ModelContext) async {
+        guard !hasLoadedInitialData else { return }
+        
+        isLoading = true
+        hasLoadedInitialData = true
+        
+        do {
+            let apiTasks = try await NetworkManager.shared.loadTasks()
+            
+            apiTasks.forEach {
+                let task = TaskItem(title: $0.todo)
+                task.isCompleted = $0.completed
+                modelContext.insert(task)
+            }
+            
+            try modelContext.save()
+            
+        } catch {
+            print("Ошибка загрузки задач: \(error.localizedDescription)")
+            hasLoadedInitialData = false
+        }
+        
+        isLoading = false
     }
 }
