@@ -12,7 +12,7 @@ import SwiftData
 struct ToDoListApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            TaskItem.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,7 +25,7 @@ struct ToDoListApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ToDoListView()
         }
         .modelContainer(sharedModelContainer)
     }
