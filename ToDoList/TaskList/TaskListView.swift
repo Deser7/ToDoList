@@ -8,15 +8,29 @@
 import SwiftUI
 import SwiftData
 
-struct ToDoListView: View {
+struct TaskListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var tasks: [TaskItem]
     
-    @State private var viewModel = ToDoListViewModel()
+    @State private var viewModel = TaskListViewModel()
     @State private var showingAddTask = false
 
     var body: some View {
         NavigationStack {
+            VStack {
+                CustomSearchBarView(
+                    text: $viewModel.searchText,
+                    onVoiceSearch: { print("Голосовой поиск нажат") }
+                )
+                
+                List {
+                    ForEach(viewModel.filteredTasks(tasks)) { task in
+//                        NavigationLink(destination: TaskDetailView, label: <#T##() -> Label#>)
+                    }
+                }
+            }
+            .navigationTitle("Задачи")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 
@@ -37,6 +51,6 @@ struct ToDoListView: View {
 }
 
 #Preview {
-    ToDoListView()
+    TaskListView()
         .modelContainer(for: TaskItem.self, inMemory: true)
 }

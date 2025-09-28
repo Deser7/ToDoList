@@ -9,7 +9,7 @@ import Foundation
 import Observation
 
 @Observable
-final class ToDoListViewModel {
+final class TaskListViewModel {
     var searchText = ""
     
     func filteredTasks(_ tasks: [TaskItem]) -> [TaskItem] {
