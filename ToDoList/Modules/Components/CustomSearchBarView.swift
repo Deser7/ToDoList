@@ -50,7 +50,7 @@ struct CustomSearchBarView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(.ultraThickMaterial)
         )
         .animation(.easeInOut(duration: 0.2), value: isEditing)
     }
