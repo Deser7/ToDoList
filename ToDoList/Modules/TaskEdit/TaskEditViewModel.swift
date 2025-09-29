@@ -30,4 +30,8 @@ final class TaskEditViewModel: Identifiable {
         item.details = details
         try context.save()
     }
+    
+    func isValidTitle(_ text: String) -> Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).count > 2
+    }
 }
