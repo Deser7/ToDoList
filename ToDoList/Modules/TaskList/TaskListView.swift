@@ -83,6 +83,12 @@ struct TaskListView: View {
                 )
             }
         }
+        .overlay(alignment: .bottom) {
+            AddTaskBarView(total: tasks.count) {
+                editViewModel = TaskEditViewModel()
+            }
+            .ignoresSafeArea(edges: .bottom)
+        }
         .sheet(item: $editViewModel) { viewModel in
             TaskEditView(viewModel: viewModel)
         }

@@ -28,7 +28,7 @@ struct TaskCellView: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.primary)
                     .opacity(isCompleted ? 0.5 : 1)
-                    .strikethrough(isCompleted, pattern: .solid, color: .secondary)
+                    .strikethrough(isCompleted, pattern: .solid, color: .primary.opacity(0.5))
                 
                 if !details.isEmpty {
                     Text(details)
@@ -40,8 +40,7 @@ struct TaskCellView: View {
                 
                 Text(timestamp.dateStringWithSeparator)
                     .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(.primary)
-                    .opacity(0.5)
+                    .foregroundStyle(.primary.opacity(0.5))
             }
         }
     }

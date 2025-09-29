@@ -30,14 +30,14 @@ struct TaskEditView: View {
         NavigationStack {
             Form {
                 Section("Название") {
-                    TextField("Измените название", text: $title)
+                    TextField("Введите название", text: $title)
                         .textInputAutocapitalization(.sentences)
                 }
                 Section("Описание") {
                     ZStack(alignment: .topLeading) {
-                        if details.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text("Изменить описание")
-                                .foregroundStyle(.secondary)
+                        if viewModel.createCleanText(details).isEmpty {
+                            Text("Добавьте описание")
+                                .foregroundStyle(.secondary.opacity(0.5))
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                         }
@@ -52,7 +52,7 @@ struct TaskEditView: View {
                     }
                 }
             }
-            .navigationTitle("Редактировать задачу")
+            .navigationTitle(viewModel.id == nil ? "Новая задача" : "Редактировать задачу")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -61,8 +61,8 @@ struct TaskEditView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Сохранить") {
                         do {
-                            viewModel.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                            viewModel.details = details.trimmingCharacters(in: .whitespacesAndNewlines)
+                            viewModel.title = title
+                            viewModel.details = details
                             try viewModel.save(in: modelContext)
                             onSaved?()
                             dismiss()
