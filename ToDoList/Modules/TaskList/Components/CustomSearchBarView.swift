@@ -17,12 +17,12 @@ struct CustomSearchBarView: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.gray)
                 .padding(.leading, 8)
             
             TextField("Search", text: $text)
                 .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.gray)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .padding(.top, 8)
@@ -37,7 +37,7 @@ struct CustomSearchBarView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 17, weight: .regular))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.gray)
                 }
             }
             
@@ -50,7 +50,7 @@ struct CustomSearchBarView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.systemGray6))
+                .fill(Color(.systemGray5))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
