@@ -12,7 +12,8 @@ struct TaskListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var tasks: [TaskItem]
     
-    @State private var viewModel = TaskListViewModel()
+    @State private var listViewModel = TaskListViewModel()
+    @State private var editViewModel: TaskEditViewModel? = nil
     @State private var showingAddTask = false
     @State private var selectedTask: TaskItem? = nil
     
@@ -20,11 +21,11 @@ struct TaskListView: View {
         NavigationStack {
             VStack {
                 CustomSearchBarView(
-                    text: $viewModel.searchText,
+                    text: $listViewModel.searchText,
                     onVoiceSearch: { print("Голосовой поиск нажат") }
                 )
                 
-                if viewModel.isLoading {
+                if listViewModel.isLoading {
                     VStack {
                         ProgressView("Загрузка задач...")
                             .progressViewStyle(CircularProgressViewStyle())
@@ -32,7 +33,7 @@ struct TaskListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        ForEach(viewModel.filteredTasks(tasks)) { task in
+                        ForEach(listViewModel.filteredTasks(tasks)) { task in
                             TaskCellView(
                                 title: task.title,
                                 details: task.details,
@@ -43,6 +44,26 @@ struct TaskListView: View {
                             .onTapGesture {
                                 selectedTask = task
                             }
+                            .contextMenu {
+                                Button {
+                                    editViewModel = TaskEditViewModel(task: task)
+                                } label: {
+                                    Label("Редактировать", systemImage: "pencil")
+                                }
+                                
+                                ShareLink(
+                                    item: "\(task.title)\n\n\(task.details)\n\(task.timestamp.dateStringWithSeparator)"
+                                ) {
+                                    Label("Поделиться", systemImage: "square.and.arrow.up")
+                                }
+                                
+                                Button(role: .destructive) {
+                                    deleteTask(task)
+                                    try? modelContext.save()
+                                } label: {
+                                    Label("Удалить", systemImage: "trash")
+                                }
+                            }
                         }
                         .onDelete(perform: deleteTasks)
                     }
@@ -52,7 +73,7 @@ struct TaskListView: View {
             .navigationTitle("Задачи")
             .navigationBarTitleDisplayMode(.large)
             .task {
-                await viewModel.loadInitialTasksIfNeeded(modelContext)
+                await listViewModel.loadInitialTasksIfNeeded(modelContext)
             }
             .navigationDestination(item: $selectedTask) { task in
                 TaskDetailView(
@@ -61,6 +82,9 @@ struct TaskListView: View {
                     details: task.details
                 )
             }
+        }
+        .sheet(item: $editViewModel) { viewModel in
+            TaskEditView(viewModel: viewModel)
         }
     }
     
