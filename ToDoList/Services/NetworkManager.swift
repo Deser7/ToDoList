@@ -7,11 +7,19 @@
 
 import Foundation
 
-@MainActor
 final class NetworkManager {
     static let shared = NetworkManager()
     
-    private init() {}
+    private let session: URLSession
+    
+    private init(session: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 15
+        configuration.timeoutIntervalForResource = 30
+        return URLSession(configuration: configuration)
+    }()) {
+        self.session = session
+    }
     
     func loadTasks() async throws -> [Response.ToDo] {
         guard let url = URL(string: API.url) else {

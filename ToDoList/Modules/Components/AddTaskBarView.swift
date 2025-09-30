@@ -27,7 +27,7 @@ struct AddTaskBarView: View {
                     .foregroundStyle(.yellowDone)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Дшбавить задачу")
+            .accessibilityLabel("Добавить задачу")
         }
         .frame(height: 49)
         .padding(.horizontal, 16)

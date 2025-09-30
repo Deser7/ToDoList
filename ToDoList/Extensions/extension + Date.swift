@@ -7,10 +7,16 @@
 
 import Foundation
 
-extension Date {
-    var dateStringWithSeparator: String {
+private enum DateFormatters {
+    static let short: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yy"
-        return formatter.string(from: self)
+        return formatter
+    }()
+}
+
+extension Date {
+    var dateStringWithSeparator: String {
+        DateFormatters.short.string(from: self)
     }
 }
