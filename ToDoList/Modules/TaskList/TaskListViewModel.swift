@@ -36,6 +36,12 @@ final class TaskListViewModel {
     func loadInitialTasksIfNeeded(_ modelContext: ModelContext) async {
         guard !hasLoadedInitialData else { return }
         
+        let existingTasksCount = try? modelContext.fetchCount(FetchDescriptor<TaskItem>())
+        guard existingTasksCount == 0 else {
+            hasLoadedInitialData = true
+            return
+        }
+        
         isLoading = true
         hasLoadedInitialData = true
         
