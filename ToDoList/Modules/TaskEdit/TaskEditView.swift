@@ -54,7 +54,7 @@ struct TaskEditView: View {
                     }
                 }
             }
-            .navigationTitle(viewModel.id == nil ? "Новая задача" : "Редактировать задачу")
+            .navigationTitle(viewModel.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

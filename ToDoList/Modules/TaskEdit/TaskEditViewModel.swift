@@ -11,28 +11,34 @@ import SwiftData
 
 @Observable
 final class TaskEditViewModel: Identifiable {
-    let id: UUID?
+    private var task: TaskItem?
+    
+    let id: UUID
     var title: String
     var details: String
     
+    var navigationTitle: String {
+        task == nil ? "Новая задача" : "Редактировать задачу"
+    }
+    
     init(task: TaskItem) {
+        self.task = task
         self.id = task.id
         self.title = task.title
         self.details = task.details
     }
     
     init() {
-        self.id = nil
+        self.task = nil
+        self.id = UUID()
         self.title = ""
         self.details = ""
     }
     
     func save(in context: ModelContext) throws {
-        if let id {
-            let descriptor = FetchDescriptor<TaskItem>(predicate: #Predicate { $0.id == id })
-            guard let item = try context.fetch(descriptor).first else { return }
-            item.title = createCleanText(title)
-            item.details = createCleanText(details)
+        if let task {
+            task.title = createCleanText(title)
+            task.details = createCleanText(details)
         } else {
             let item = TaskItem(title: createCleanText(title))
             item.details = createCleanText(details)
