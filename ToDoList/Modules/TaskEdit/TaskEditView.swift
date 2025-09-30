@@ -15,6 +15,8 @@ struct TaskEditView: View {
     @State private var viewModel: TaskEditViewModel
     @State private var title: String
     @State private var details: String
+    @State private var showSaveError = false
+    
     @FocusState private var detailsFocused: Bool
     
     let onSaved: (() -> Void)?
@@ -67,11 +69,16 @@ struct TaskEditView: View {
                             onSaved?()
                             dismiss()
                         } catch {
-                            print("Ошибка сохранения: \(error)")
+                            showSaveError = true
                         }
                     }
                     .disabled(!viewModel.isValidTitle(title))
                 }
+            }
+            .alert("Ошибка сохранения", isPresented: $showSaveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Не удалось сохранить задачу. Попробуйте ещё раз.")
             }
             .onAppear { detailsFocused = false }
         }
