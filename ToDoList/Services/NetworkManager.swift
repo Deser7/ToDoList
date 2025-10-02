@@ -12,12 +12,14 @@ final class NetworkManager {
     
     private let session: URLSession
     
-    private init(session: URLSession = {
+    private init() {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 15
         configuration.timeoutIntervalForResource = 30
-        return URLSession(configuration: configuration)
-    }()) {
+        self.session = URLSession(configuration: configuration)
+    }
+    
+    init(session: URLSession) {
         self.session = session
     }
     
@@ -26,7 +28,7 @@ final class NetworkManager {
             throw NetworkError.invalidURL
         }
         
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let (data, response) = try await session.data(from: url)
         
         guard let http = response as? HTTPURLResponse else {
             throw NetworkError.invalidResponse
