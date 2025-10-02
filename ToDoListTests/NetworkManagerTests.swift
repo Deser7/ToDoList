@@ -10,7 +10,7 @@ import Testing
 @testable import ToDoList
 
 @MainActor
-@Suite("NetworkManager (Testing)", .serialized)
+@Suite("NetworkManagerTests", .serialized)
 struct NetworkManagerTests: ~Copyable {
 
     // Успех: статус 200, валидный JSON, две задачи в ответе

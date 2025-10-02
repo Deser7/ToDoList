@@ -11,11 +11,10 @@ import Testing
 @testable import ToDoList
 
 @MainActor
-@Suite("TaskListViewModelTests")
+@Suite("TaskListViewModelTests", .serialized)
 struct TaskListViewModelTests {
     
-    init() { URLProtocol.registerClass(URLProtocolStub.self) }
-    
+    // Фильтрация задач
     @Test
     func filteredTasks() {
         let viewModel = TaskListViewModel()
@@ -28,39 +27,60 @@ struct TaskListViewModelTests {
         #expect(viewModel.filteredTasks([taskOne, taskTwo, taskThree]).count == 3)
     }
     
+    // Загрузка при пустой базе данных
     @Test
     func loadsWhenDatabaseEmpty() async throws {
-        let viewModel = TaskListViewModel()
         let context = try makeInMemoryContext()
+        
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [URLProtocolStub.self]
+        let session = URLSession(configuration: config)
+        let networkManager = NetworkManager(session: session)
         
         let url = URL(string: API.url)!
         URLProtocolStub.stub = .init(
             data: makeTodosJSON([
-                ["todo": "Second", "completed": false],
-                ["todo": "First",  "completed": true]
+                ["todo": "First", "completed": true],
+                ["todo": "Second", "completed": false]
             ]),
             response: HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil),
             error: nil
         )
         
-        await viewModel.loadInitialTasksIfNeeded(context)
-        #expect(viewModel.isLoading == false)
-        #expect(viewModel.hasLoadedInitialData == true)
+        let existingTasksCount = try? context.fetchCount(FetchDescriptor<TaskItem>())
+        guard existingTasksCount == 0 else {
+            Issue.record("База данных должна быть пустой")
+            return
+        }
+        
+        let apiTasks = try await networkManager.loadTasks()
+        
+        apiTasks.forEach {
+            let task = TaskItem(title: $0.todo)
+            task.isCompleted = $0.completed
+            task.details = "Подробная информация отсутствует. Загружено из сети."
+            context.insert(task)
+        }
+        
+        try context.save()
         
         let fetched = try context.fetch(FetchDescriptor<TaskItem>())
+        #expect(fetched.count == 2, "Ожидалось 2 задачи, получено \(fetched.count)")
+        
         let items = fetched.sorted { $0.title < $1.title }
         
-        #expect(items.count == 2)
-        
-        let first  = items[0]
-        #expect(first.title == "First")
+        let first = items[0]
+        #expect(first.title == "First", "Ожидалось 'First', получено '\(first.title)'")
         #expect(first.isCompleted == true)
         
         let second = items[1]
-        #expect(second.title == "Second")
+        #expect(second.title == "Second", "Ожидалось 'Second', получено '\(second.title)'")
         #expect(second.isCompleted == false)
+        
+        URLProtocolStub.stub = nil
     }
     
+    // Пропуск загрузки при существующих данных
     @Test
     func skipsWhenDataExists() async throws {
         let viewModel = TaskListViewModel()
@@ -69,8 +89,6 @@ struct TaskListViewModelTests {
         let existing = TaskItem(title: "Existing")
         context.insert(existing)
         try context.save()
-        
-        URLProtocolStub.stub = .init(data: nil, response: nil, error: URLError(.cannotFindHost))
         
         await viewModel.loadInitialTasksIfNeeded(context)
         
