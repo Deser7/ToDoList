@@ -14,7 +14,6 @@ struct TaskListView: View {
     
     @State private var listViewModel = TaskListViewModel()
     @State private var editViewModel: TaskEditViewModel? = nil
-    @State private var showingAddTask = false
     @State private var selectedTask: TaskItem? = nil
     
     var body: some View {
@@ -97,13 +96,6 @@ struct TaskListView: View {
     private func toggleTask(_ task: TaskItem) {
         withAnimation(.easeInOut(duration: 0.2)) {
             task.isCompleted.toggle()
-        }
-    }
-    
-    private func addItem() {
-        withAnimation {
-            let newItem = TaskItem(title: String())
-            modelContext.insert(newItem)
         }
     }
     
