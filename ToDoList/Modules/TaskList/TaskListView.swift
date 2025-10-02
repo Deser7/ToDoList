@@ -115,9 +115,13 @@ struct TaskListView: View {
     
     private func deleteTasks(offsets: IndexSet) {
         withAnimation {
+            let current = listViewModel.filteredTasks(tasks)
             for index in offsets {
-                modelContext.delete(tasks[index])
+                guard current.indices.contains(index) else { continue }
+                let task = current[index]
+                modelContext.delete(task)
             }
+            try? modelContext.save()
         }
     }
 }

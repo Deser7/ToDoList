@@ -26,13 +26,6 @@ final class TaskListViewModel {
         }
     }
     
-    func getTaskStatistics(_ tasks: [TaskItem]) -> (total: Int, completed: Int, pending: Int) {
-        let total = tasks.count
-        let completed = tasks.filter { $0.isCompleted }.count
-        let pending = total - completed
-        return (total, completed, pending)
-    }
-    
     func loadInitialTasksIfNeeded(_ modelContext: ModelContext) async {
         guard !hasLoadedInitialData else { return }
         
