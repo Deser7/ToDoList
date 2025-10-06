@@ -15,7 +15,7 @@ struct AddTaskBarView: View {
         HStack {
             Spacer()
             
-            Text("\(total) Задач")
+            Text("\(total) \(total.taskWord)")
                 .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(.primary)
             
@@ -36,5 +36,5 @@ struct AddTaskBarView: View {
 }
 
 #Preview {
-    AddTaskBarView(total: 7, onAddTap: {})
+    AddTaskBarView(total: 1, onAddTap: {})
 }
