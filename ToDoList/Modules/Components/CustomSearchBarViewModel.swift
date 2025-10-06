@@ -1,0 +1,165 @@
+//
+//  CustomSearchBarViewModel.swift
+//  ToDoList
+//
+//  Created by Наташа Спиридонова on 03.10.2025.
+//
+
+import AVFoundation
+import Observation
+import Speech
+
+@Observable
+final class CustomSearchBarViewModel {
+    var finalizedText = ""
+    var currentText = ""
+    var isRecording = false
+    var hasPermissions = false
+    var errorMessage: String?
+    
+    private var transcriber: SpeechTranscriber?
+    private var analyzer: SpeechAnalyzer?
+    private var audioEngine = AVAudioEngine()
+    private var recognitionTask: Task<Void, Never>?
+    
+    
+    
+    func startRecording() {
+        guard hasPermissions else {
+            errorMessage = "Нет разрешений для записи"
+            return
+        }
+        
+        Task {
+            do {
+                isRecording = true
+                errorMessage = nil
+                try await setupAudioSession()
+                try await startTranscription()
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Ошибка запуска записи: \(error.localizedDescription)"
+                    isRecording = false
+                }
+            }
+        }
+    }
+    
+    func stopRecording() {
+        // Отменяем задачу распознавания
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        
+        // Останавливаем анализатор речи
+        analyzer = nil
+        
+        // Останавливаем аудиодвижок
+        audioEngine.stop()
+        
+        // Деактивируем аудиосессию
+        do {
+            try AVAudioSession.sharedInstance().setActive(false)
+        } catch {
+            print("❌ Ошибка деактивации аудиосессии: \(error)")
+        }
+        
+        // Обновляем состояние
+        isRecording = false
+    }
+    
+    func clearText() {
+        currentText = ""
+        finalizedText = ""
+    }
+    
+    private func setupSpeechTranscriber() {
+        Task {
+            // SpeechTranscriber не выбрасывает ошибки при инициализации
+            transcriber = SpeechTranscriber(
+                locale: Locale(identifier: "ru-RU"),
+                preset: .progressiveTranscription
+            )
+            
+            await MainActor.run {
+                print("✅ SpeechTranscriber инициализирован")
+            }
+        }
+    }
+    
+    private func requestPermissions() async {
+        // Проверяем текущий статус разрешений
+        let speechAuth = SFSpeechRecognizer.authorizationStatus()
+        
+        // Запрашиваем разрешение только если оно не определено
+        if speechAuth == .notDetermined {
+            await withCheckedContinuation { continuation in
+                SFSpeechRecognizer.requestAuthorization { status in
+                    continuation.resume()
+                }
+            }
+        }
+        
+        // Запрашиваем разрешение на микрофон (новый API для iOS 17+)
+        let micAuth = await withCheckedContinuation { continuation in
+            AVAudioApplication.requestRecordPermission { granted in
+                continuation.resume(returning: granted)
+            }
+        }
+        
+        // Проверяем финальный статус
+        let finalSpeechAuth = SFSpeechRecognizer.authorizationStatus()
+        
+        await MainActor.run {
+            hasPermissions = finalSpeechAuth == .authorized && micAuth
+            if !hasPermissions {
+                errorMessage = "Разрешения отклонены"
+            }
+        }
+    }
+    
+    
+    
+    private func startTranscription() async throws {
+        guard let transcriber = transcriber else {
+            throw NSError(domain: "SpeechError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Transcriber не инициализирован"])
+        }
+        
+        // Создаем SpeechAnalyzer с правильными параметрами
+        analyzer = SpeechAnalyzer(
+            modules: [transcriber]
+        )
+        
+        recognitionTask = Task {
+            do {
+                // Используем правильный API для получения результатов
+                for try await result in transcriber.results {
+                    await MainActor.run {
+                        // Используем правильный API для получения результатов
+                        let _transcriber = result as SpeechTranscriber.Result
+                        currentText = String(_transcriber.text.characters)
+                        
+                        if _transcriber.isFinal {
+                            finalizedText += String(_transcriber.text.characters) + " "
+                            stopRecording()
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Ошибка обработки результатов: \(error.localizedDescription)"
+                    stopRecording()
+                }
+            }
+        }
+    }
+    
+    private func setupAudioSession() async throws {
+        try AVAudioSession.sharedInstance().setCategory(
+            .record,
+            mode: .measurement,
+            options: [.duckOthers, .allowBluetoothHFP]
+        )
+        try AVAudioSession.sharedInstance().setActive(true)
+    }
+}
+
