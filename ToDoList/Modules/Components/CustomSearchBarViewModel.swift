@@ -30,12 +30,13 @@ final class CustomSearchBarViewModel {
             return
         }
         
+        isRecording = true
+        errorMessage = nil
+        
         Task {
             do {
-                isRecording = true
-                errorMessage = nil
                 try await setupAudioSession()
-                try await startTranscription()
+                try startTranscription()
             } catch {
                 await MainActor.run {
                     errorMessage = "Ошибка запуска записи: \(error.localizedDescription)"
@@ -72,21 +73,19 @@ final class CustomSearchBarViewModel {
         finalizedText = ""
     }
     
-    private func setupSpeechTranscriber() {
-        Task {
-            // SpeechTranscriber не выбрасывает ошибки при инициализации
-            transcriber = SpeechTranscriber(
-                locale: Locale(identifier: "ru-RU"),
-                preset: .progressiveTranscription
-            )
-            
-            await MainActor.run {
-                print("✅ SpeechTranscriber инициализирован")
-            }
-        }
+    func setupSpeechTranscriber() {
+        // SpeechTranscriber не выбрасывает ошибки при инициализации
+        transcriber = SpeechTranscriber(
+            locale: Locale(identifier: "ru-RU"),
+            preset: .progressiveTranscription
+        )
+        
+        print("✅ SpeechTranscriber инициализирован")
+        
+        
     }
     
-    private func requestPermissions() async {
+    func requestPermissions() async {
         // Проверяем текущий статус разрешений
         let speechAuth = SFSpeechRecognizer.authorizationStatus()
         
@@ -119,7 +118,7 @@ final class CustomSearchBarViewModel {
     
     
     
-    private func startTranscription() async throws {
+    private func startTranscription() throws {
         guard let transcriber = transcriber else {
             throw NSError(domain: "SpeechError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Transcriber не инициализирован"])
         }
