@@ -13,8 +13,6 @@ struct TaskEditView: View {
     @Environment(\.modelContext) private var modelContext
     
     @State private var viewModel: TaskEditViewModel
-    @State private var title: String
-    @State private var details: String
     @State private var showSaveError = false
     
     @FocusState private var detailsFocused: Bool
@@ -24,27 +22,25 @@ struct TaskEditView: View {
     init(viewModel: TaskEditViewModel, onSaved: (() -> Void)? = nil) {
         self._viewModel = State(initialValue: viewModel)
         self.onSaved = onSaved
-        _title = State(initialValue: viewModel.title)
-        _details = State(initialValue: viewModel.details)
     }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section("Название") {
-                    TextField("Введите название", text: $title)
+                    TextField("Введите название", text: $viewModel.title)
                         .textInputAutocapitalization(.sentences)
                 }
                 Section("Описание") {
                     ZStack(alignment: .topLeading) {
-                        if viewModel.createCleanText(details).isEmpty {
+                        if viewModel.createCleanText(viewModel.details).isEmpty {
                             Text("Добавьте описание")
                                 .foregroundStyle(.secondary.opacity(0.5))
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                         }
                         
-                        TextEditor(text: $details)
+                        TextEditor(text: $viewModel.details)
                             .font(.system(size: 16))
                             .scrollContentBackground(.hidden)
                             .frame(minHeight: 140)
@@ -63,8 +59,6 @@ struct TaskEditView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Сохранить") {
                         do {
-                            viewModel.title = title
-                            viewModel.details = details
                             try viewModel.save(in: modelContext)
                             onSaved?()
                             dismiss()
@@ -72,7 +66,7 @@ struct TaskEditView: View {
                             showSaveError = true
                         }
                     }
-                    .disabled(!viewModel.isValidTitle(title))
+                    .disabled(!viewModel.isValidTitle(viewModel.title))
                 }
             }
             .alert("Ошибка сохранения", isPresented: $showSaveError) {
