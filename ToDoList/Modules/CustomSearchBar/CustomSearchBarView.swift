@@ -13,6 +13,7 @@ struct CustomSearchBarView: View {
     
     @State private var isEditing = false
     @State private var viewModel = CustomSearchBarViewModel()
+    @State private var isInitialized = false
     
     var body: some View {
         VStack {
@@ -44,19 +45,18 @@ struct CustomSearchBarView: View {
                 }
                 
                 Button(action: {
-                    if viewModel.isRecording {
-                        viewModel.stopRecording()
-                    } else {
-                        viewModel.startRecording()
+                    if isInitialized {
+                        viewModel.toggleRecording()
                     }
                     onVoiceSearch()
                 }) {
-                    Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
+                    Image(systemName: viewModel.microphoneIcon)
                         .font(.system(size: 17, weight: .regular))
                         .foregroundStyle(viewModel.isRecording ? .red : .gray)
                         .scaleEffect(viewModel.isRecording ? 1.2 : 1.0)
                         .animation(.easeInOut(duration: 0.2), value: viewModel.isRecording)
                 }
+                .disabled(!viewModel.canRecord || !isInitialized)
                 .padding(.trailing, 8)
             }
             .background(
@@ -85,7 +85,7 @@ struct CustomSearchBarView: View {
                         )
                     }
                     
-                    // Финальный текст (накопленный результат)
+                    // Финальный текст
                     if !viewModel.finalizedText.isEmpty {
                         HStack {
                             Text("Результат:")
@@ -100,6 +100,23 @@ struct CustomSearchBarView: View {
                         .background(
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(.blue.opacity(0.1))
+                        )
+                    }
+                    
+                    // ✅ Отображение ошибок
+                    if let errorMessage = viewModel.errorMessage {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                            Text(errorMessage)
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(.red.opacity(0.1))
                         )
                     }
                     
@@ -129,6 +146,21 @@ struct CustomSearchBarView: View {
             // Обновляем поле поиска с финальным текстом
             text = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
         }
+        .onAppear {
+#if DEBUG
+            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
+                if !isInitialized {
+                    viewModel.initializeVoiceSearch()
+                    isInitialized = true
+                }
+            }
+#else
+            if !isInitialized {
+                viewModel.initializeVoiceSearch()
+                isInitialized = true
+            }
+#endif
+        }
     }
 }
 
@@ -138,4 +170,7 @@ struct CustomSearchBarView: View {
         text: .constant(""),
         onVoiceSearch: {}
     )
+    .onAppear {
+        print("Превью режим - голосовой поиск отключен")
+    }
 }

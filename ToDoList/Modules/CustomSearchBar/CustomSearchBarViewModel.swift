@@ -18,11 +18,37 @@ final class CustomSearchBarViewModel {
     var errorMessage: String?
     
     private var transcriber: SpeechTranscriber?
-    private var analyzer: SpeechAnalyzer?
-    private var audioEngine = AVAudioEngine()
     private var recognitionTask: Task<Void, Never>?
     
+    var canRecord: Bool {
+        hasPermissions && !isRecording
+    }
     
+    var microphoneIcon: String {
+        isRecording ? "stop.fill" : "mic.fill"
+    }
+    
+    func initializeVoiceSearch() {
+#if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            print("🚫 Превью режим - голосовой поиск отключен")
+            return
+        }
+#endif
+        
+        setupSpeechTranscriber()
+        Task {
+            await self.requestPermissions()
+        }
+    }
+    
+    func toggleRecording() {
+        if isRecording {
+            stopRecording()
+        } else {
+            startRecording()
+        }
+    }
     
     func startRecording() {
         guard hasPermissions else {
@@ -51,12 +77,6 @@ final class CustomSearchBarViewModel {
         recognitionTask?.cancel()
         recognitionTask = nil
         
-        // Останавливаем анализатор речи
-        analyzer = nil
-        
-        // Останавливаем аудиодвижок
-        audioEngine.stop()
-        
         // Деактивируем аудиосессию
         do {
             try AVAudioSession.sharedInstance().setActive(false)
@@ -73,7 +93,7 @@ final class CustomSearchBarViewModel {
         finalizedText = ""
     }
     
-    func setupSpeechTranscriber() {
+    private func setupSpeechTranscriber() {
         // SpeechTranscriber не выбрасывает ошибки при инициализации
         transcriber = SpeechTranscriber(
             locale: Locale(identifier: "ru-RU"),
@@ -85,7 +105,7 @@ final class CustomSearchBarViewModel {
         
     }
     
-    func requestPermissions() async {
+    private func requestPermissions() async {
         // Проверяем текущий статус разрешений
         let speechAuth = SFSpeechRecognizer.authorizationStatus()
         
@@ -122,11 +142,6 @@ final class CustomSearchBarViewModel {
         guard let transcriber = transcriber else {
             throw NSError(domain: "SpeechError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Transcriber не инициализирован"])
         }
-        
-        // Создаем SpeechAnalyzer с правильными параметрами
-        analyzer = SpeechAnalyzer(
-            modules: [transcriber]
-        )
         
         recognitionTask = Task {
             do {
